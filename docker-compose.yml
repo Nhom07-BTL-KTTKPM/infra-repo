@@ -99,8 +99,8 @@ services:
 
   api-gateway:
     build:
-      context: ../api-gateway-repo/api-gateway
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: api-gateway-repo/api-gateway/Dockerfile
     image: cosmetics/api-gateway:dev
     container_name: api-gateway
     restart: unless-stopped
