@@ -1,0 +1,192 @@
+# NOTE: This file is intentionally consolidated for day-to-day development.
+# TODO: Split into smaller service overlays later (apps/event/ai) when service ownership and deployment boundaries are finalized.
+
+services:
+  auth-service:
+    build:
+      context: ../auth-repo/auth-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/auth-service:dev
+    container_name: auth-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
+
+  user-service:
+    build:
+      context: ../user-repo/user-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/user-service:dev
+    container_name: user-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
+
+  catalog-service:
+    build:
+      context: ../catalog-repo/catalog-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/catalog-service:dev
+    container_name: catalog-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/catalog_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
+
+  cart-service:
+    build:
+      context: ../cart-repo/cart-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/cart-service:dev
+    container_name: cart-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/cart_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8084:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
+
+  order-service:
+    build:
+      context: ../order-repo/order-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/order-service:dev
+    container_name: order-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8085:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
+
+  ai-service:
+    build:
+      context: ../ai-repo/ai-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/ai-service:dev
+    container_name: ai-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATA_MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-root}@mongo:27017/ai_db?authSource=admin
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8086:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
+
+  notification-service:
+    build:
+      context: ../notification-repo/notification-service
+      dockerfile: ../../infra-repo/docker/spring-boot-service.Dockerfile
+    image: cosmetics/notification-service:dev
+    container_name: notification-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+    ports:
+      - "8087:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - cosmetics-net
