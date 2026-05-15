@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-platform_db}
-      POSTGRES_MULTIPLE_DATABASES: auth_db,user_db,catalog_db,cart_db,order_db,notification_db
+      POSTGRES_MULTIPLE_DATABASES: auth_db,user_db,catalog_db,cart_db,order_db,notification_db,upload_db
     ports:
       - "5432:5432"
     volumes:
@@ -111,6 +111,27 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_started
+    networks:
+      - cosmetics-net
+
+  upload-service:
+    build:
+      context: ..
+      dockerfile: upload-service-repo/upload-service/Dockerfile
+    image: cosmetics/upload-service:dev
+    container_name: upload-service
+    restart: unless-stopped
+    env_file:
+      - ../upload-service-repo/upload-service/.env
+    ports:
+      - "8008:8008"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    volumes:
+      - ./uploads:/uploads
     networks:
       - cosmetics-net
 
