@@ -114,27 +114,6 @@ services:
     networks:
       - cosmetics-net
 
-  upload-service:
-    build:
-      context: ..
-      dockerfile: upload-service-repo/upload-service/Dockerfile
-    image: cosmetics/upload-service:dev
-    container_name: upload-service
-    restart: unless-stopped
-    env_file:
-      - ../upload-service-repo/upload-service/.env
-    ports:
-      - "8008:8008"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      discovery-service:
-        condition: service_started
-    volumes:
-      - ./uploads:/uploads
-    networks:
-      - cosmetics-net
-
 networks:
   cosmetics-net:
     driver: bridge
