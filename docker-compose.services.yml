@@ -45,13 +45,31 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ""
+      SPRING_DATA_REDIS_TIMEOUT: 2s
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      AUTH_JWT_ISSUER: auth-service
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-NUQyuZhoBd6u6O6dAP30Rgu5bqv5TdzpKreGhZGExSaHXEQIM3kicw9uptSaJP9Q}
+      AUTH_RABBITMQ_CRITICAL_EXCHANGE: critical.exchange
+      USER_RABBITMQ_ACCOUNT_CREATED_QUEUE: user.account.created.queue
+      USER_RABBITMQ_ROUTING_ACCOUNT_CREATED: account.created
+      USER_SERVICE_INTERNAL_AUTH_HEADER_NAME: X-Internal-Api-Key
+      USER_SERVICE_INTERNAL_AUTH_API_KEY: ${USER_SERVICE_INTERNAL_AUTH_API_KEY:-change-me-in-prod}
       EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      EUREKA_INSTANCE_IP_ADDRESS: user-service
+      EUREKA_INSTANCE_HOSTNAME: user-service
     ports:
       - "8082:8080"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       discovery-service:
         condition: service_started
@@ -97,7 +115,14 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ""
+      SPRING_DATA_REDIS_TIMEOUT: 2s
+      AUTH_JWT_ISSUER: auth-service
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-NUQyuZhoBd6u6O6dAP30Rgu5bqv5TdzpKreGhZGExSaHXEQIM3kicw9uptSaJP9Q}
       EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      EUREKA_INSTANCE_IP_ADDRESS: cart-service
+      EUREKA_INSTANCE_HOSTNAME: cart-service
     ports:
       - "8084:8080"
     depends_on:
