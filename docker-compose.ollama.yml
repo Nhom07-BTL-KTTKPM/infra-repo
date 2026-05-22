@@ -1,0 +1,42 @@
+name: cosmetics-platform
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - cosmetics-net
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    restart: "no"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODELS=nomic-embed-text llama3.2:1b
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - cosmetics-net
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until ollama list >/dev/null 2>&1; do sleep 2; done
+        for model in $OLLAMA_MODELS; do
+          echo "Pulling $model..."
+          ollama pull "$model"
+        done
+
+networks:
+  cosmetics-net:
+    driver: bridge
+
+volumes:
+  ollama_data:
