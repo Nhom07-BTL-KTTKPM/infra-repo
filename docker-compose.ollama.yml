@@ -5,6 +5,7 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: unless-stopped
+    gpus: all
     ports:
       - "11434:11434"
     volumes:
@@ -19,7 +20,7 @@ services:
     restart: "no"
     environment:
       - OLLAMA_HOST=http://ollama:11434
-      - OLLAMA_MODELS=nomic-embed-text llama3.2:1b
+      - OLLAMA_MODELS=nomic-embed-text qwen3:4b
     volumes:
       - ollama_data:/root/.ollama
     networks:
