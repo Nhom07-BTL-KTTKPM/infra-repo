@@ -1,0 +1,33 @@
+# Stage 1: Build service resolving dependencies from GitHub Packages
+FROM maven:3.9.9-eclipse-temurin-17 AS build
+WORKDIR /app
+
+ARG GITHUB_USERNAME
+ARG GITHUB_TOKEN
+
+# Dynamically generate Maven settings.xml for GitHub Packages authentication
+RUN mkdir -p /root/.m2 && \
+    echo "<settings xmlns='http://maven.apache.org/SETTINGS/1.0.0' \
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' \
+      xsi:schemaLocation='http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd'> \
+        <servers> \
+            <server> \
+                <id>github</id> \
+                <username>${GITHUB_USERNAME}</username> \
+                <password>${GITHUB_TOKEN}</password> \
+            </server> \
+        </servers> \
+    </settings>" > /root/.m2/settings.xml
+
+# Build targeted service
+ARG SERVICE_PATH
+WORKDIR /app/service
+COPY ${SERVICE_PATH} .
+RUN chmod +x mvnw && ./mvnw -s /root/.m2/settings.xml -DskipTests clean package
+
+# Stage 2: Create lightweight running container
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=build /app/service/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
