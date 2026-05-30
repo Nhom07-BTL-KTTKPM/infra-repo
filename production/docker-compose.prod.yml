@@ -13,7 +13,7 @@ services:
     # PORTS REMOVED to prevent exposing PostgreSQL to the Internet
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
-      - ../docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+      - ./init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -57,12 +57,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     networks:
       - prod-net
 
@@ -82,12 +76,6 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     networks:
       - prod-net
 
@@ -105,12 +93,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     networks:
       - prod-net
 
@@ -126,9 +108,9 @@ services:
       - ./certs:/etc/nginx/certs:ro
     depends_on:
       auth-service:
-        condition: service_healthy
+        condition: service_started
       user-service:
-        condition: service_healthy
+        condition: service_started
     networks:
       - prod-net
 
